@@ -1,0 +1,15 @@
+﻿@model IEnumerable<Department>
+@{
+    ViewData["Title"] = "Bölümler";
+}
+<h2>Bölümler</h2>
+<p><a class="btn btn-primary" asp-action="CreateDepartment">Yeni Bölüm</a></p>
+<table class="table table-bordered">
+    <thead><tr><th>Fakülte</th><th>Bölüm</th></tr></thead>
+    <tbody>
+        @foreach (var d in Model)
+        {
+            <tr><td>@d.Faculty.Name</td><td>@d.Name</td></tr>
+        }
+    </tbody>
+</table>

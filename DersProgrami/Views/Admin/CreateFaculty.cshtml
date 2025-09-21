@@ -1,0 +1,17 @@
+﻿@model DersProgrami.Models.FacultyCreateVM
+@{
+    ViewData["Title"] = "Fakülte Ekle";
+}
+<h2>Fakülte Ekle</h2>
+<form asp-action="CreateFaculty" method="post">
+    <div class="mb-2">
+        <label class="form-label">Fakülte Adı</label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+    <button class="btn btn-success" type="submit">Kaydet</button>
+    <a asp-action="Faculties" class="btn btn-secondary">Geri</a>
+</form>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,272 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using DersProgrami.Data
+@using DersProgrami.Models
+@inject UserManager<IdentityUser> UserManager
+@inject ApplicationDbContext Db
+
+@functions {
+    public class TodayLessonVM
+    {
+        public int Hour { get; set; }
+        public string Classroom { get; set; } = "";
+        public Lesson Lesson { get; set; } = default!;
+    }
+
+    public string DayLabel(DayOfWeek d) => d switch
+    {
+        DayOfWeek.Monday => "Pazartesi",
+        DayOfWeek.Tuesday => "Salı",
+        DayOfWeek.Wednesday => "Çarşamba",
+        DayOfWeek.Thursday => "Perşembe",
+        DayOfWeek.Friday => "Cuma",
+        DayOfWeek.Saturday => "Cumartesi",
+        DayOfWeek.Sunday => "Pazar",
+        _ => d.ToString()
+    };
+}
+
+@{
+    ViewData["Title"] = "Welcome";
+
+    var user = await UserManager.GetUserAsync(User);
+    var teacher = user == null
+        ? null
+        : await Db.Teachers
+            .Include(t => t.Department).ThenInclude(d => d.Faculty)
+            .FirstOrDefaultAsync(t => t.UserId == user!.Id);
+
+    bool isAdmin = User.IsInRole("Admin");
+    bool isTeacher = User.IsInRole("Teacher") && teacher != null;
+
+    var now = DateTime.Now;
+    var today = now.DayOfWeek;
+    var hourInt = now.Hour;
+
+    var todaysLessons = new List<TodayLessonVM>();
+    if (isTeacher)
+    {
+        todaysLessons = await Db.Schedules
+            .Where(s => s.TeacherId == teacher!.TeacherId && s.Day == today)
+            .Join(Db.Lessons,
+                  s => s.LessonId,
+                  l => l.LessonId,
+                  (s, l) => new TodayLessonVM
+                  {
+                      Hour = s.Hour,
+                      Classroom = string.IsNullOrWhiteSpace(s.Classroom) ? "5" : s.Classroom,
+                      Lesson = l
+                  })
+            .OrderBy(x => x.Hour)
+            .ToListAsync();
+    }
+
+    var nextLesson = todaysLessons.FirstOrDefault(x => x.Hour >= hourInt);
+    var weeklyHours = isTeacher
+        ? await Db.Schedules.CountAsync(s => s.TeacherId == teacher!.TeacherId)
+        : 0;
+
+    var pendingCount = isAdmin ? await Db.PendingTeacherRequests.CountAsync() : 0;
+    var clashCount = isAdmin
+        ? await Db.Schedules.GroupBy(s => new { s.Day, s.Hour, s.Classroom })
+                            .CountAsync(g => g.Count() > 1)
+        : 0;
+
+    var nowLocal = DateTime.Now;
+    var teacherAnnouncements = isTeacher
+        ? await Db.Announcements
+            .Where(a => a.IsActive
+                        && (a.PublishAt == null || a.PublishAt <= nowLocal))
+            .OrderByDescending(a => a.PublishAt ?? a.CreatedAt)
+            .Take(5)
+            .ToListAsync()
+        : new List<Announcement>();
+}
+
+<div class="container py-4">
+    <h2 class="mb-4">DersProgramı</h2>
+
+    @if (isTeacher)
+    {
+        <div class="row g-3">
+            <div class="col-lg-4">
+                <div class="card h-100">
+                    <div class="card-header">Merhaba</div>
+                    <div class="card-body">
+                        <div class="fw-semibold">
+                            @teacher!.Title @teacher.FullName
+                        </div>
+                        <div class="text-muted">
+                            @teacher.Department?.Name / @teacher.Department?.Faculty?.Name
+                        </div>
+                        <hr />
+                        <div class="small text-muted">Haftalık ders saati</div>
+                        <div class="display-6">@weeklyHours</div>
+                    </div>
+                    <div class="card-footer d-flex flex-wrap gap-2">
+                        <a class="btn btn-primary btn-sm" asp-controller="Teacher" asp-action="Schedule">Ders Programım</a>
+                        <a class="btn btn-outline-secondary btn-sm" asp-controller="Teacher" asp-action="Workload">Ders Yüküm</a>
+                        <a class="btn btn-outline-secondary btn-sm" asp-controller="Teacher" asp-action="Salary">Maaşım</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                <div class="card h-100">
+                    <div class="card-header">Bugün (@DayLabel(today))</div>
+                    <div class="card-body">
+                        @if (!todaysLessons.Any())
+                        {
+                            <div class="text-muted">Bugün dersiniz yok.</div>
+                        }
+                        else
+                        {
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                    <tr>
+                                        <th style="width:110px">Saat</th>
+                                        <th>Ders</th>
+                                        <th style="width:120px">Derslik</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var x in todaysLessons)
+                                    {
+                                        var isNext = nextLesson != null && nextLesson.Hour == x.Hour && x.Hour >= hourInt;
+                                        <tr class="@(isNext ? "table-info" : "")">
+                                            <td>@($"{x.Hour:00}:00")</td>
+                                            <td><strong>@x.Lesson.Code</strong> - @x.Lesson.LessonName</td>
+                                            <td>@x.Classroom</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            @if (isTeacher && teacherAnnouncements.Any())
+            {
+                <div class="card mt-3">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>Duyurular</span>
+                        <div class="btn-group btn-group-sm">
+                            <button type="button" class="btn btn-outline-secondary" id="annPrev">‹</button>
+                            <button type="button" class="btn btn-outline-secondary" id="annNext">›</button>
+                        </div>
+                    </div>
+
+                    <div class="ann-strip" id="annStrip">
+                        @foreach (var a in teacherAnnouncements)
+                        {
+                            <div class="ann-card card shadow-sm">
+                                <div class="card-body">
+                                    <div class="fw-semibold mb-1">@a.Title</div>
+                                    <div class="small text-muted mb-2">
+                                        @((a.PublishAt ?? a.CreatedAt).ToLocalTime().ToString("g"))
+                                    </div>
+                                    <div class="text-body">@Html.Raw((a.Content ?? "").Replace("\n", "<br/>"))</div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+        </div>
+    }
+
+    @if (isAdmin)
+    {
+        <div class="row g-3 mt-1">
+            <div class="col-md-3">
+                <div class="card text-bg-light">
+                    <div class="card-body">
+                        <div class="small text-muted">Öğretmen</div>
+                        <div class="h3 mb-0">@await Db.Teachers.CountAsync()</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-bg-light">
+                    <div class="card-body">
+                        <div class="small text-muted">Ders</div>
+                        <div class="h3 mb-0">@await Db.Lessons.CountAsync()</div>
+                    </div>
+                </div>
+            </div>
+           
+           
+
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">Hızlı İşlemler</div>
+                    <div class="card-body d-flex flex-wrap gap-2">
+                        <a class="btn btn-primary btn-sm" asp-controller="Admin" asp-action="Teachers">Öğretmenler</a>
+                        <a class="btn btn-outline-secondary btn-sm" asp-controller="Admin" asp-action="Lessons">Dersler</a>
+                        <a class="btn btn-outline-secondary btn-sm" asp-controller="Admin" asp-action="Departments">Bölümler</a>
+                        <a class="btn btn-outline-secondary btn-sm" asp-controller="Admin" asp-action="Faculties">Fakülteler</a>
+                        <a class="btn btn-outline-secondary btn-sm" asp-controller="Admin" asp-action="Announcements">Duyurular</a>
+                        <a class="btn btn-outline-secondary btn-sm" asp-controller="Admin" asp-action="SalaryCoefficients">Maaş Ayarları</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+
+    @if (!isAdmin && !isTeacher)
+    {
+        <div class="alert alert-info mt-4">
+            Sistemi kullanmak için giriş yapın. Eğer öğretmenseniz kayıt oluşturup admin onayı bekleyin.
+        </div>
+    }
+</div>
+
+
+<style>
+    .ann-strip {
+        display: flex;
+        gap: 1rem;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        padding: 1rem;
+    }
+
+        .ann-strip::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .ann-strip::-webkit-scrollbar-thumb {
+            background: #ced4da;
+            border-radius: 4px;
+        }
+
+    .ann-card {
+        flex: 0 0 calc((100% - 2rem) / 3); 
+        min-width: calc((100% - 2rem) / 3);
+        scroll-snap-align: start;
+    }
+
+    }
+</style>
+
+<script>
+    (function () {
+        const strip = document.getElementById('annStrip');
+        if (!strip) return;
+
+        const prev = document.getElementById('annPrev');
+        const next = document.getElementById('annNext');
+
+        function pageWidth() { return strip.clientWidth; }
+
+        prev?.addEventListener('click', () =>
+            strip.scrollBy({ left: -pageWidth(), behavior: 'smooth' })
+        );
+        next?.addEventListener('click', () =>
+            strip.scrollBy({ left: pageWidth(), behavior: 'smooth' })
+        );
+    })();
+</script>

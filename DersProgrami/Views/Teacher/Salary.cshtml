@@ -1,0 +1,20 @@
+﻿@model DersProgrami.Models.OgretmenMaasVM
+@{
+    ViewData["Title"] = "Maaş Hesabı";
+    string money(decimal v) => string.Format(System.Globalization.CultureInfo.GetCultureInfo("tr-TR"), "{0:C}", v);
+}
+
+<h2>@ViewData["Title"]</h2>
+<p class="text-muted">@Model.TeacherName (@Model.Title)</p>
+
+<table class="table w-auto">
+    <tbody>
+        <tr><th>Toplam Ders Saati</th><td>@Model.TotalHours</td></tr>
+        <tr><th>Temel Saat Ücreti</th><td>@money(Model.BaseHourly)</td></tr>
+        <tr><th>Unvan Katsayısı</th><td>@Model.Coefficient</td></tr>
+        <tr class="table-light">
+            <th>Toplam Maaş</th>
+            <th>@money(Model.TotalSalary)</th>
+        </tr>
+    </tbody>
+</table>

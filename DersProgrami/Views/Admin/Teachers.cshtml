@@ -1,0 +1,43 @@
+﻿@model IEnumerable<Teacher>
+@{
+    ViewData["Title"] = "Öğretmenler";
+}
+<h2>Öğretmenler</h2>
+<table class="table table-bordered">
+    <thead>
+        <tr><th>Ad Soyad</th><th>Email</th><th>Fakülte / Bölüm</th><th>Unvan</th> <th style="width:140px;"></th></tr>
+    </thead>
+    <tbody>
+        @foreach (var t in Model)
+        {
+            <tr>
+                <td>@t.FullName</td>
+                <td>@t.Email</td>
+                <td>@t.Department.Faculty.Name / @t.Department.Name</td>
+                <td>
+                    <form asp-action="UpdateTitle" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="teacherId" value="@t.TeacherId" />
+
+                        <select name="title" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="Öğretim Görevlisi"
+                                    selected="@(t.Title == "Öğretim Görevlisi")">Öğretim Görevlisi</option>
+
+                            <option value="Doçent"
+                                    selected="@(t.Title == "Doçent")">Doçent</option>
+
+                            <option value="Profesör"
+                                    selected="@(t.Title == "Profesör")">Profesör</option>
+                        </select>
+                    </form>
+
+                </td>
+                <td>
+                    <a class="btn btn-sm btn-primary"
+                       asp-action="TeacherSchedule" asp-route-id="@t.TeacherId">Programı Aç</a>
+                </td>
+
+            </tr>
+        }
+    </tbody>
+</table>

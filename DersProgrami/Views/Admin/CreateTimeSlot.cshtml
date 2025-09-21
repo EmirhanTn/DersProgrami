@@ -1,0 +1,16 @@
+﻿@model DersProgrami.Models.TimeSlot
+@{
+    ViewData["Title"] = "Saat Ekle";
+}
+<h2>@ViewData["Title"]</h2>
+
+<form asp-action="CreateTimeSlot" method="post" class="col-4">
+    @Html.AntiForgeryToken()
+    <div class="mb-3">
+        <label class="form-label">Saat (0-23)</label>
+        <input class="form-control" asp-for="Hour" type="number" min="0" max="23" />
+        <span class="text-danger" asp-validation-for="Hour"></span>
+    </div>
+    <button class="btn btn-success">Kaydet</button>
+    <a asp-action="TimeSlots" class="btn btn-secondary">Geri</a>
+</form>

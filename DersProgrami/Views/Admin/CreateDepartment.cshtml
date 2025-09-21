@@ -1,0 +1,29 @@
+﻿@model DersProgrami.Models.DepartmentCreateVM
+@{
+    ViewData["Title"] = "Bölüm Ekle";
+    var faculties = (IEnumerable<Faculty>)ViewBag.Faculties;
+}
+<h2>Bölüm Ekle</h2>
+<form asp-action="CreateDepartment" method="post">
+    <div class="mb-2">
+        <label class="form-label">Fakülte</label>
+        <select asp-for="FacultyId" class="form-select" required>
+            <option value="">Seçiniz</option>
+            @foreach (var f in faculties)
+            {
+                <option value="@f.FacultyId">@f.Name</option>
+            }
+        </select>
+        <span asp-validation-for="FacultyId" class="text-danger"></span>
+    </div>
+    <div class="mb-2">
+        <label class="form-label">Bölüm Adı</label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+    <button class="btn btn-success" type="submit">Kaydet</button>
+    <a asp-action="Departments" class="btn btn-secondary">Geri</a>
+</form>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

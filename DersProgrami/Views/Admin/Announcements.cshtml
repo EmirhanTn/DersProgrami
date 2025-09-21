@@ -1,0 +1,49 @@
+﻿@model IEnumerable<DersProgrami.Models.Announcement>
+@{
+    ViewData["Title"] = "Duyurular";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Duyurular</h3>
+    <a asp-action="CreateAnnouncement" class="btn btn-primary btn-sm">Yeni Duyuru</a>
+</div>
+
+<table class="table table-sm align-middle">
+    <thead>
+        <tr>
+            <th>Başlık</th>
+            <th>Yayın</th>
+            <th>Durum</th>
+            <th style="width:160px"></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var a in Model)
+        {
+            var start = a.PublishAt?.ToString("g") ?? "hemen";
+            var end = a.ExpireAt?.ToString("g") ?? "süresiz";
+
+            <tr>
+                <td><strong>@a.Title</strong></td>
+                <td>@start – @end</td>
+                <td>
+                    <span class="badge @(a.IsActive ? "bg-success" : "bg-secondary")">
+                        @(a.IsActive ? "Aktif" : "Pasif")
+                    </span>
+                </td>
+                <td class="text-end">
+                    <a asp-action="EditAnnouncement" asp-route-id="@a.AnnouncementId"
+                       class="btn btn-outline-secondary btn-sm">Düzenle</a>
+                    <form asp-action="DeleteAnnouncement" asp-route-id="@a.AnnouncementId"
+                          method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-outline-danger btn-sm"
+                                onclick="return confirm('Silinsin mi?')">
+                            Sil
+                        </button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

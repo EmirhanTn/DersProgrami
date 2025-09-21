@@ -1,0 +1,29 @@
+# build
+bin/
+obj/
+out/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+
+# logs
+*.log
+logs/
+
+# secrets
+secrets.json
+
+# publish
+*.pubxml
+*.pubxml.user
+
+# Rider/JetBrains
+.idea/
+
+# macOS
+.DS_Store
+
+# node (varsa)
+node_modules/

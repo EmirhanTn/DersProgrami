@@ -1,0 +1,47 @@
+﻿@using static DersProgrami.Models.ScheduleViewModel
+@model EditScheduleDto
+@{
+    var faculties = (IEnumerable<Faculty>)ViewBag.Faculties;
+    var departments = (IEnumerable<Department>)ViewBag.Departments;
+    var lessons = (IEnumerable<Lesson>)ViewBag.Lessons;
+    var facList = new SelectList(faculties, nameof(Faculty.FacultyId), nameof(Faculty.Name), Model.FacultyId);
+}
+
+
+<form id="editScheduleForm" method="post" asp-action="UpdateSchedule">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="ScheduleId" value="@Model.ScheduleId" />
+    <input type="hidden" name="Day" value="@Model.Day" />
+    <input type="hidden" name="Hour" value="@Model.Hour" />
+
+    <div class="mb-3">
+        <label class="form-label">Fakülte</label>
+        <select id="FacultyId" name="FacultyId" class="form-select"
+                asp-items="facList"></select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Bölüm</label>
+        <select id="DepartmentId" name="DepartmentId" class="form-select"
+                data-selected="@Model.DepartmentId">
+            <option value="">Seçiniz</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Ders</label>
+        <select id="LessonId" name="LessonId" class="form-select"
+                data-selected="@Model.LessonId">
+            <option value="">Seçiniz</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Sınıf (Classroom)</label>
+        <input name="Classroom" class="form-control" value="@Model.Classroom" />
+    </div>
+
+    <div class="text-end">
+        <button type="submit" class="btn btn-success">Kaydet</button>
+    </div>
+</form>

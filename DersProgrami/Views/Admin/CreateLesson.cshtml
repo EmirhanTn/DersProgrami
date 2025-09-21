@@ -1,0 +1,68 @@
+﻿@model DersProgrami.Models.LessonCreateVM
+@{
+    ViewData["Title"] = "Ders Ekle";
+    var faculties = (IEnumerable<Faculty>)ViewBag.Faculties;
+    var departments = (IEnumerable<Department>)ViewBag.Departments;
+}
+<h2>Ders Ekle</h2>
+<form asp-action="CreateLesson" method="post">
+    <div class="mb-2">
+        <label class="form-label">Fakülte</label>
+        <select id="FacultyId" asp-for="FacultyId" class="form-select" required>
+            <option value="">Seçiniz</option>
+            @foreach (var f in faculties)
+            {
+                <option value="@f.FacultyId">@f.Name</option>
+            }
+        </select>
+        <span asp-validation-for="FacultyId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-2">
+        <label class="form-label">Bölüm</label>
+        <select id="DepartmentId" asp-for="DepartmentId" class="form-select" required>
+            <option value="">Seçiniz</option>
+            @if (departments != null)
+            {
+                foreach (var d in departments)
+                {
+                    <option value="@d.DepartmentId">@d.Name</option>
+                }
+            }
+        </select>
+        <span asp-validation-for="DepartmentId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-2">
+        <label class="form-label">Ders Kodu</label>
+        <input asp-for="Code" class="form-control" />
+        <span asp-validation-for="Code" class="text-danger"></span>
+    </div>
+
+    <div class="mb-2">
+        <label class="form-label">Ders Adı</label>
+        <input asp-for="LessonName" class="form-control" />
+        <span asp-validation-for="LessonName" class="text-danger"></span>
+    </div>
+
+    <button class="btn btn-success" type="submit">Kaydet</button>
+    <a asp-action="Lessons" class="btn btn-secondary">Geri</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Fakülte seçilince Bölümleri getir
+        const fSel = document.getElementById('FacultyId');
+        const dSel = document.getElementById('DepartmentId');
+
+        fSel.addEventListener('change', async () => {
+            dSel.innerHTML = '<option value="">Seçiniz</option>';
+            if (!fSel.value) return;
+            const r = await fetch(`/Admin/DepartmentsByFaculty?facultyId=${fSel.value}`);
+            const items = await r.json();
+            items.forEach(x => dSel.insertAdjacentHTML('beforeend',
+                `<option value="${x.departmentId}">${x.name}</option>`));
+        });
+    </script>
+}

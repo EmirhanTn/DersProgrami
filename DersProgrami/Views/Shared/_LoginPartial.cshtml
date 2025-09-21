@@ -1,0 +1,46 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using DersProgrami.Data
+@using Microsoft.EntityFrameworkCore
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+@inject ApplicationDbContext _context
+
+<ul class="navbar-nav">
+    @if (SignInManager.IsSignedIn(User))
+    {
+        var user = await UserManager.GetUserAsync(User);
+        var teacher = await _context.Teachers
+        .FirstOrDefaultAsync(t => t.UserId == user.Id);
+
+        <li class="nav-item">
+            @if (teacher != null)
+            {
+                <span class="nav-link text-dark">
+                     @teacher.Title @teacher.FullName
+                </span>
+            }
+            else
+            {
+                <span class="nav-link text-dark">
+                     @user.Email!
+                </span>
+            }
+        </li>
+        <li class="nav-item">
+            <form asp-area="Identity" asp-page="/Account/Logout"
+                  asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })"
+                  method="post" id="logoutForm" class="form-inline">
+                <button type="submit" class="nav-link btn btn-link text-dark">Logout</button>
+            </form>
+        </li>
+    }
+    else
+    {
+        <li class="nav-item">
+            <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Register">Register</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Login">Login</a>
+        </li>
+    }
+</ul>

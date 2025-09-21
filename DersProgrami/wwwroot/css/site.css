@@ -1,0 +1,66 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+/* Hücre düzeni */
+.schedule-cell {
+    position: relative;
+    padding: 10px 12px;
+    min-width: 220px;
+    vertical-align: top;
+    word-break: break-word;
+}
+
+/* Ýçerik (ders adý, derslik, fakülte) */
+.lesson-title {
+    font-weight: 600;
+    line-height: 1.15;
+    margin-bottom: 4px;
+}
+
+.lesson-meta {
+    font-size: .9rem;
+    color: #6c757d;
+    line-height: 1.2;
+}
+
+/* Aksiyonlar: sað üstte, hover'da görünür */
+.schedule-actions {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    display: flex;
+    gap: 6px;
+    opacity: 0;
+    pointer-events: none; /* yer kaplamaz, týklanmaz */
+    transition: opacity .15s ease-in-out;
+}
+
+.schedule-cell:hover .schedule-actions {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Uzun baþlýklarda daha kompakt görünüm */
+.schedule-actions .btn {
+    padding: 2px 8px;
+    font-size: .85rem;
+}

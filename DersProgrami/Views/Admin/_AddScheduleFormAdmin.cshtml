@@ -1,0 +1,45 @@
+﻿@model AddScheduleAdminDto
+@{
+    var faculties = (IEnumerable<Faculty>)ViewBag.Faculties;
+}
+<form id="addScheduleFormAdmin" method="post">
+    @Html.AntiForgeryToken()
+
+    <input type="hidden" name="TeacherId" value="@Model.TeacherId" />
+    <input type="hidden" name="Day" value="@Model.Day" />
+    <input type="hidden" name="Hour" value="@Model.Hour" />
+
+    <div class="mb-3">
+        <label class="form-label">Fakülte</label>
+        <select id="FacultyId" name="FacultyId" class="form-select" required>
+            <option value="">Seçiniz</option>
+            @foreach (var faculty in faculties)
+            {
+                <option value="@faculty.FacultyId">@faculty.Name</option>
+            }
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Bölüm</label>
+        <select id="DepartmentId" name="DepartmentId" class="form-select" required>
+            <option value="">Seçiniz</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Ders</label>
+        <select id="LessonId" name="LessonId" class="form-select" required>
+            <option value="">Seçiniz</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Derslik</label>
+        <input class="form-control" name="Classroom" value="5" />
+    </div>
+
+    <div class="text-end">
+        <button class="btn btn-success" type="submit">Kaydet</button>
+    </div>
+</form>

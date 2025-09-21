@@ -1,0 +1,29 @@
+﻿@model IEnumerable<DersProgrami.Models.TimeSlot>
+@{
+    ViewData["Title"] = "Ders Saatleri";
+    string Label(int h) => $"{h:00}:00 - {h + 1:00}:00";
+}
+<h2>@ViewData["Title"]</h2>
+<p><a class="btn btn-primary" asp-action="CreateTimeSlot">Yeni Saat Ekle</a></p>
+
+<table class="table table-bordered">
+    <thead><tr><th>Saat</th><th style="width:140px;"></th></tr></thead>
+    <tbody>
+        @foreach (var s in Model)
+        {
+            <tr>
+                <td>@Label(s.Hour)</td>
+                <td class="text-end">
+                    <form asp-action="DeleteTimeSlot" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@s.TimeSlotId" />
+                        <button class="btn btn-outline-danger btn-sm"
+                                onclick="return confirm('Silinsin mi? Bu saatte kayıt varsa engellenecek.');">
+                            Sil
+                        </button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
