@@ -8,8 +8,8 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-using DersProgrami.Data;      // ApplicationDbContext
-using DersProgrami.Models;    // Teacher, Department, Faculty
+using DersProgrami.Data;     
+using DersProgrami.Models;    
 
 namespace DersProgrami.Areas.Identity.Pages.Account
 {
@@ -32,7 +32,7 @@ namespace DersProgrami.Areas.Identity.Pages.Account
             _roleManager = roleManager;
         }
 
-        // Sayfada doldurulan alanlar
+     
         public class InputModel
         {
             [Required, EmailAddress]
@@ -59,11 +59,11 @@ namespace DersProgrami.Areas.Identity.Pages.Account
         [BindProperty]
         public InputModel Input { get; set; } = new();
 
-        // Dropdown kaynakları
+    
         public List<SelectListItem> FacultyOptions { get; set; } = new();
         public List<SelectListItem> DepartmentOptions { get; set; } = new();
 
-        // Sayfa açılışında listeleri doldur
+
         public async Task OnGetAsync(string? returnUrl = null)
         {
             Input.ReturnUrl = returnUrl;
@@ -83,8 +83,6 @@ namespace DersProgrami.Areas.Identity.Pages.Account
             }
         }
 
-        // Fakülte -> Bölüm: JSON
-        // /Identity/Account/Register?handler=Departments&facultyId=3
         public async Task<IActionResult> OnGetDepartmentsAsync(int facultyId)
         {
             var items = await _context.Departments
@@ -96,19 +94,18 @@ namespace DersProgrami.Areas.Identity.Pages.Account
             return new JsonResult(items);
         }
 
-        // Kayıt işlemi
         public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
         {
             Input.ReturnUrl ??= returnUrl;
 
             if (!ModelState.IsValid)
             {
-                // Dropdownlar boş kalmasın
+    
                 await OnGetAsync(Input.ReturnUrl);
                 return Page();
             }
 
-            // 1) Identity User oluştur
+      
             var user = new IdentityUser { UserName = Input.Email, Email = Input.Email, EmailConfirmed = true };
             var createResult = await _userManager.CreateAsync(user, Input.Password);
 
@@ -120,14 +117,12 @@ namespace DersProgrami.Areas.Identity.Pages.Account
                 await OnGetAsync(Input.ReturnUrl);
                 return Page();
             }
-
-            // 2) Teacher rolü yoksa oluştur
+         
             if (!await _roleManager.RoleExistsAsync("Teacher"))
                 await _roleManager.CreateAsync(new IdentityRole("Teacher"));
 
             await _userManager.AddToRoleAsync(user, "Teacher");
 
-            // 3) Teacher kaydı
             var teacher = new Teacher
             {
                 Email = Input.Email,
@@ -135,15 +130,12 @@ namespace DersProgrami.Areas.Identity.Pages.Account
                 FullName = Input.FullName.Trim(),
                 DepartmentId = Input.DepartmentId!.Value,
                 Title = "Öğretim Görevlisi",
-                IsApproved = false // onay süreci istiyorsanız; yoksa kaldırın
+                IsApproved = false
             };
             _context.Teachers.Add(teacher);
             await _context.SaveChangesAsync();
 
-            // 4) İsterseniz hemen oturum açtırabilirsiniz:
-            // await _signInManager.SignInAsync(user, isPersistent: false);
-
-            // Onay süreci varsa girişe yönlendirebiliriz
+  
             return RedirectToPage("./Login", new { area = "Identity" });
         }
     }
