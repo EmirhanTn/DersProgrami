@@ -3,7 +3,6 @@
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @{
     ViewData["Title"] = "Kayıt Ol";
-    // Handler için sabit (net) URL; Areas ile karışmasın diye absolute path:
     var depUrl = Url.Content("~/Identity/Account/Register?handler=Departments");
 }
 
@@ -15,35 +14,30 @@
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Input.ReturnUrl" />
 
-            <!-- Email -->
             <div class="mb-3">
                 <label asp-for="Input.Email" class="form-label">Email</label>
                 <input asp-for="Input.Email" class="form-control" autocomplete="username" />
                 <span asp-validation-for="Input.Email" class="text-danger"></span>
             </div>
 
-            <!-- Password -->
             <div class="mb-3">
                 <label asp-for="Input.Password" class="form-label">Password</label>
                 <input asp-for="Input.Password" class="form-control" autocomplete="new-password" />
                 <span asp-validation-for="Input.Password" class="text-danger"></span>
             </div>
 
-            <!-- Confirm -->
             <div class="mb-3">
                 <label asp-for="Input.ConfirmPassword" class="form-label">Parolayı Doğrula</label>
                 <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" />
                 <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
             </div>
 
-            <!-- Full name -->
             <div class="mb-3">
                 <label asp-for="Input.FullName" class="form-label">Ad Soyad</label>
                 <input asp-for="Input.FullName" class="form-control" />
                 <span asp-validation-for="Input.FullName" class="text-danger"></span>
             </div>
 
-            <!-- Faculty -->
             <div class="mb-3">
                 <label asp-for="Input.FacultyId" class="form-label">Fakülte</label>
                 <select asp-for="Input.FacultyId"
@@ -55,7 +49,6 @@
                 <span asp-validation-for="Input.FacultyId" class="text-danger"></span>
             </div>
 
-            <!-- Department (cascades) -->
             <div class="mb-3">
                 <label asp-for="Input.DepartmentId" class="form-label">Bölüm</label>
                 <select asp-for="Input.DepartmentId"
@@ -82,7 +75,7 @@
         (function () {
             const fac = document.getElementById('FacultyId');
             const dep = document.getElementById('DepartmentId');
-            const url = '@depUrl'; // /Identity/Account/Register?handler=Departments
+            const url = '@depUrl'; 
 
             async function loadDepartments(fid, selected) {
                 dep.innerHTML = '<option value="">Seçiniz</option>';
@@ -109,10 +102,8 @@
                 }
             }
 
-            // Fakülte değişince bölümleri getir
             fac.addEventListener('change', () => loadDepartments(fac.value, null));
 
-            // Sayfa validasyon hatasıyla geri dönerse seçili fakülteye uygun bölümleri yükle
             if (fac.value && dep.options.length <= 1) {
                 loadDepartments(fac.value, dep.value);
             }
